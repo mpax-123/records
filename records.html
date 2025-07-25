@@ -92,6 +92,45 @@
       background: var(--nhs-dark-blue);
     }
 
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+      font-size: 15px;
+      color: var(--nhs-grey-dark);
+    }
+
+    th, td {
+      padding: 14px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--nhs-grey-medium);
+      vertical-align: middle;
+    }
+
+    th {
+      background: var(--nhs-grey-light);
+      font-weight: 600;
+      color: var(--nhs-blue);
+    }
+
+    tr:hover {
+      background: #e6f0ff;
+    }
+
+    /* User management table */
+    #userTable input[type="text"] {
+      border: 1px solid var(--nhs-grey-medium);
+      border-radius: 4px;
+      padding: 6px 8px;
+      font-size: 14px;
+    }
+
+    #userTable button {
+      padding: 6px 12px;
+      font-size: 14px;
+      margin-right: 6px;
+    }
+
     /* Responsive */
     @media (max-width: 700px) {
       form {
@@ -121,8 +160,47 @@
     <h1>NHS Patient Records Management System</h1>
     <button id="logoutBtn">Logout</button>
 
-    <!-- Rest of the main content goes here -->
+    <!-- Patient List -->
+    <h2>Patient List</h2>
+    <table id="patientTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Age</th>
+          <th>Condition</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
 
+    <form id="addPatientForm" aria-label="Add new patient form">
+      <input type="text" id="name" placeholder="Patient Name" required autocomplete="off" />
+      <input type="number" id="age" placeholder="Age" required min="0" />
+      <textarea id="condition" placeholder="Medical Condition" required></textarea>
+      <button type="submit">Add Patient</button>
+    </form>
+  </div>
+
+  <!-- Admin User Management -->
+  <div class="container" id="adminPanel" style="display: none;">
+    <h2>User Management (Admin Only)</h2>
+    <form id="addUserForm">
+      <input type="text" id="newUsername" placeholder="New Username" required autocomplete="off" />
+      <input type="password" id="newPassword" placeholder="New Password" required autocomplete="off" />
+      <button type="submit">Add User</button>
+    </form>
+
+    <table id="userTable">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Role</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
 
   <script>
@@ -137,9 +215,13 @@
     localStorage.setItem('users', JSON.stringify(users));
 
     let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
-
+    let patients = JSON.parse(localStorage.getItem('patients')) || [];
     const loginView = document.getElementById('loginView');
     const mainView = document.getElementById('mainView');
+    const adminPanel = document.getElementById('adminPanel');
+    const patientTableBody = document.querySelector('#patientTable tbody');
+    const addPatientForm = document.getElementById('addPatientForm');
+    const addUserForm = document.getElementById('addUserForm');
     const logoutBtn = document.getElementById('logoutBtn');
 
     // Login functionality
@@ -154,6 +236,13 @@
         localStorage.setItem('currentUser', JSON.stringify(currentUser));
         loginView.style.display = 'none';
         mainView.style.display = 'block';
+        if (user.isAdmin) {
+          adminPanel.style.display = 'block';
+          renderUsers();
+        } else {
+          adminPanel.style.display = 'none';
+        }
+        renderPatients();
       } else {
         alert("Invalid username or password.");
       }
@@ -163,6 +252,91 @@
     if (currentUser) {
       loginView.style.display = 'none';
       mainView.style.display = 'block';
+      if (currentUser.isAdmin) {
+        adminPanel.style.display = 'block';
+        renderUsers();
+      } else {
+        adminPanel.style.display = 'none';
+      }
+      renderPatients();
+    }
+
+    // Render patients list
+    function renderPatients() {
+      patientTableBody.innerHTML = '';
+      patients.forEach((patient, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${patient.name}</td>
+          <td>${patient.age}</td>
+          <td>${patient.condition}</td>
+          <td><button onclick="deletePatient(${index})">Delete</button></td>
+        `;
+        patientTableBody.appendChild(row);
+      });
+    }
+
+    // Add new patient
+    addPatientForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value;
+      const age = document.getElementById('age').value;
+      const condition = document.getElementById('condition').value;
+
+      patients.push({ name, age, condition });
+      localStorage.setItem('patients', JSON.stringify(patients));
+      renderPatients();
+      addPatientForm.reset();
+    });
+
+    // Delete patient
+    function deletePatient(index) {
+      patients.splice(index, 1);
+      localStorage.setItem('patients', JSON.stringify(patients));
+      renderPatients();
+    }
+
+    // Render users (Admin panel only)
+    function renderUsers() {
+      const userTableBody = document.querySelector('#userTable tbody');
+      userTableBody.innerHTML = '';
+      users.forEach((user, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${user.username}</td>
+          <td>${user.isAdmin ? 'Admin' : 'User'}</td>
+          <td><button onclick="deleteUser(${index})">Delete</button></td>
+        `;
+        userTableBody.appendChild(row);
+      });
+    }
+
+    // Add new user (Admin only)
+    addUserForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = document.getElementById('newUsername').value;
+      const password = document.getElementById('newPassword').value;
+
+      if (users.find(u => u.username === username)) {
+        alert('User already exists');
+        return;
+      }
+
+      users.push({ username, password, isAdmin: false });
+      localStorage.setItem('users', JSON.stringify(users));
+      renderUsers();
+      addUserForm.reset();
+    });
+
+    // Delete user (Admin only)
+    function deleteUser(index) {
+      if (users[index].username === 'CF' || users[index].username === 'LB') {
+        alert('Cannot delete system admin users');
+        return;
+      }
+      users.splice(index, 1);
+      localStorage.setItem('users', JSON.stringify(users));
+      renderUsers();
     }
 
     // Logout functionality
@@ -171,6 +345,7 @@
       localStorage.removeItem('currentUser');
       loginView.style.display = 'block';
       mainView.style.display = 'none';
+      adminPanel.style.display = 'none';
     });
   </script>
 
