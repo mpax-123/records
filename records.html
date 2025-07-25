@@ -117,6 +117,72 @@
       background: #e6f0ff;
     }
 
+    a.patient-name {
+      color: var(--nhs-blue);
+      text-decoration: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    a.patient-name:hover {
+      text-decoration: underline;
+    }
+
+    .back-button {
+      margin-bottom: 20px;
+      display: inline-block;
+      color: var(--nhs-blue);
+      cursor: pointer;
+      user-select: none;
+      font-weight: 600;
+    }
+
+    ul.notes {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    ul.notes li {
+      background: var(--nhs-grey-light);
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      border-radius: 4px;
+      white-space: pre-line;
+      color: var(--nhs-grey-dark);
+      font-size: 15px;
+    }
+
+    .delete-btn {
+      background: var(--nhs-red);
+      border: none;
+      color: white;
+      padding: 7px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s ease;
+      margin-right: 8px;
+    }
+
+    .delete-btn:hover {
+      background: #a71d15;
+    }
+
+    .export-btn {
+      background: var(--nhs-green);
+      border: none;
+      color: white;
+      padding: 7px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s ease;
+    }
+
+    .export-btn:hover {
+      background: #00542a;
+    }
+
     /* User management table */
     #userTable input[type="text"] {
       border: 1px solid var(--nhs-grey-medium);
@@ -159,10 +225,15 @@
   <div class="container" id="mainView" style="display: none;">
     <h1>NHS Patient Records Management System</h1>
     <button id="logoutBtn">Logout</button>
+    <form id="addPatientForm" aria-label="Add new patient form">
+      <input type="text" id="name" placeholder="Patient Name" required autocomplete="off" />
+      <input type="number" id="age" placeholder="Age" required min="0" />
+      <textarea id="condition" placeholder="Medical Condition" required></textarea>
+      <button type="submit">Add Patient</button>
+    </form>
 
-    <!-- Patient List -->
     <h2>Patient List</h2>
-    <table id="patientTable">
+    <table id="patientTable" aria-label="Patient list table">
       <thead>
         <tr>
           <th>Name</th>
@@ -173,181 +244,28 @@
       </thead>
       <tbody></tbody>
     </table>
+  </div>
 
-    <form id="addPatientForm" aria-label="Add new patient form">
-      <input type="text" id="name" placeholder="Patient Name" required autocomplete="off" />
-      <input type="number" id="age" placeholder="Age" required min="0" />
-      <textarea id="condition" placeholder="Medical Condition" required></textarea>
-      <button type="submit">Add Patient</button>
+  <!-- Patient Detail View -->
+  <div class="container" id="patientView" style="display: none;">
+    <span class="back-button" id="backBtn" role="button" tabindex="0" aria-label="Back to patient list">← Back to list</span>
+    <h2 id="patientName"></h2>
+    <p><strong>Age:</strong> <span id="patientAge"></span></p>
+    <p><strong>Condition:</strong> <span id="patientCondition"></span></p>
+
+    <h3>Add Entry / Note</h3>
+    <form id="addEntryForm" aria-label="Add patient note form">
+      <textarea id="entryText" placeholder="Write a note..." required></textarea>
+      <button type="submit">Add Entry</button>
     </form>
+
+    <h3>Patient Notes</h3>
+    <ul class="notes" id="notesList" aria-label="List of patient notes"></ul>
   </div>
 
   <!-- Admin User Management -->
   <div class="container" id="adminPanel" style="display: none;">
     <h2>User Management (Admin Only)</h2>
-    <form id="addUserForm">
+    <form id="addUserForm" aria-label="Add new user form">
       <input type="text" id="newUsername" placeholder="New Username" required autocomplete="off" />
       <input type="password" id="newPassword" placeholder="New Password" required autocomplete="off" />
-      <button type="submit">Add User</button>
-    </form>
-
-    <table id="userTable">
-      <thead>
-        <tr>
-          <th>Username</th>
-          <th>Role</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <script>
-    // Ensure admin users exist, including the new LB admin account
-    let users = JSON.parse(localStorage.getItem('users')) || [];
-    if (!users.find(u => u.username === 'CF')) {
-      users.push({ username: 'CF', password: 'HiLLonden1!!', isAdmin: true });
-    }
-    if (!users.find(u => u.username === 'LB')) {
-      users.push({ username: 'LB', password: 'LB1!', isAdmin: true });
-    }
-    localStorage.setItem('users', JSON.stringify(users));
-
-    let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
-    let patients = JSON.parse(localStorage.getItem('patients')) || [];
-    const loginView = document.getElementById('loginView');
-    const mainView = document.getElementById('mainView');
-    const adminPanel = document.getElementById('adminPanel');
-    const patientTableBody = document.querySelector('#patientTable tbody');
-    const addPatientForm = document.getElementById('addPatientForm');
-    const addUserForm = document.getElementById('addUserForm');
-    const logoutBtn = document.getElementById('logoutBtn');
-
-    // Login functionality
-    document.getElementById('loginForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const username = document.getElementById('loginUsername').value.trim();
-      const password = document.getElementById('loginPassword').value;
-      const user = users.find(u => u.username === username && u.password === password);
-
-      if (user) {
-        currentUser = user;
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-        loginView.style.display = 'none';
-        mainView.style.display = 'block';
-        if (user.isAdmin) {
-          adminPanel.style.display = 'block';
-          renderUsers();
-        } else {
-          adminPanel.style.display = 'none';
-        }
-        renderPatients();
-      } else {
-        alert("Invalid username or password.");
-      }
-    });
-
-    // Check if the user is already logged in on page load
-    if (currentUser) {
-      loginView.style.display = 'none';
-      mainView.style.display = 'block';
-      if (currentUser.isAdmin) {
-        adminPanel.style.display = 'block';
-        renderUsers();
-      } else {
-        adminPanel.style.display = 'none';
-      }
-      renderPatients();
-    }
-
-    // Render patients list
-    function renderPatients() {
-      patientTableBody.innerHTML = '';
-      patients.forEach((patient, index) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${patient.name}</td>
-          <td>${patient.age}</td>
-          <td>${patient.condition}</td>
-          <td><button onclick="deletePatient(${index})">Delete</button></td>
-        `;
-        patientTableBody.appendChild(row);
-      });
-    }
-
-    // Add new patient
-    addPatientForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const name = document.getElementById('name').value;
-      const age = document.getElementById('age').value;
-      const condition = document.getElementById('condition').value;
-
-      patients.push({ name, age, condition });
-      localStorage.setItem('patients', JSON.stringify(patients));
-      renderPatients();
-      addPatientForm.reset();
-    });
-
-    // Delete patient
-    function deletePatient(index) {
-      patients.splice(index, 1);
-      localStorage.setItem('patients', JSON.stringify(patients));
-      renderPatients();
-    }
-
-    // Render users (Admin panel only)
-    function renderUsers() {
-      const userTableBody = document.querySelector('#userTable tbody');
-      userTableBody.innerHTML = '';
-      users.forEach((user, index) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${user.username}</td>
-          <td>${user.isAdmin ? 'Admin' : 'User'}</td>
-          <td><button onclick="deleteUser(${index})">Delete</button></td>
-        `;
-        userTableBody.appendChild(row);
-      });
-    }
-
-    // Add new user (Admin only)
-    addUserForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const username = document.getElementById('newUsername').value;
-      const password = document.getElementById('newPassword').value;
-
-      if (users.find(u => u.username === username)) {
-        alert('User already exists');
-        return;
-      }
-
-      users.push({ username, password, isAdmin: false });
-      localStorage.setItem('users', JSON.stringify(users));
-      renderUsers();
-      addUserForm.reset();
-    });
-
-    // Delete user (Admin only)
-    function deleteUser(index) {
-      if (users[index].username === 'CF' || users[index].username === 'LB') {
-        alert('Cannot delete system admin users');
-        return;
-      }
-      users.splice(index, 1);
-      localStorage.setItem('users', JSON.stringify(users));
-      renderUsers();
-    }
-
-    // Logout functionality
-    logoutBtn.addEventListener('click', () => {
-      currentUser = null;
-      localStorage.removeItem('currentUser');
-      loginView.style.display = 'block';
-      mainView.style.display = 'none';
-      adminPanel.style.display = 'none';
-    });
-  </script>
-
-</body>
-</html>
