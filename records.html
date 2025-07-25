@@ -1,174 +1,375 @@
-<script>
-  let users = JSON.parse(localStorage.getItem('users')) || [
-    { username: "CF", password: "HiLLonden1!!", isAdmin: true },
-    { username: "LB", password: "LB", isAdmin: true }
-  ];
-  let currentUser = null;
-  let patients = JSON.parse(localStorage.getItem('patients')) || [];
-  let currentPatientIndex = null;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Patient Management System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --nhs-blue: #005eb8;
+      --nhs-light-blue: #00a1e5;
+      --nhs-dark-blue: #003b5c;
+      --nhs-light-grey: #f0f0f0;
+      --nhs-dark-grey: #555555;
+      --nhs-white: #ffffff;
+    }
 
-  const loginView = document.getElementById('loginView');
-  const mainView = document.getElementById('mainView');
-  const patientView = document.getElementById('patientView');
-  const adminPanel = document.getElementById('adminPanel');
-  const patientTableBody = document.querySelector('#patientTable tbody');
-  const addPatientForm = document.getElementById('addPatientForm');
-  const addEntryForm = document.getElementById('addEntryForm');
-  const entryText = document.getElementById('entryText');
-  const notesList = document.getElementById('notesList');
-  const backBtn = document.getElementById('backBtn');
-  const addUserForm = document.getElementById('addUserForm');
-  const userTableBody = document.querySelector('#userTable tbody');
+    body {
+      margin: 0;
+      font-family: 'Roboto', sans-serif;
+      background-color: #f4f6f8;
+      padding: 20px;
+    }
 
-  // Login functionality
-  document.getElementById('loginForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const username = document.getElementById('loginUsername').value;
-    const password = document.getElementById('loginPassword').value;
-    const user = users.find(u => u.username === username && u.password === password);
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background-color: var(--nhs-white);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
 
-    if (user) {
-      currentUser = user;
-      loginView.style.display = 'none';
-      mainView.style.display = 'block';
-      if (user.isAdmin) {
-        adminPanel.style.display = 'block';
+    h1, h2, h3 {
+      color: var(--nhs-dark-blue);
+      font-weight: 500;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      font-size: 1.8rem;
+      margin-bottom: 15px;
+    }
+
+    form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    input, textarea {
+      flex: 1 1 300px;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: var(--nhs-light-grey);
+    }
+
+    button {
+      background-color: var(--nhs-blue);
+      color: var(--nhs-white);
+      padding: 12px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: var(--nhs-light-blue);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--nhs-light-grey);
+      vertical-align: middle;
+    }
+
+    tr:hover {
+      background-color: var(--nhs-light-grey);
+    }
+
+    .back-button {
+      display: inline-block;
+      margin-bottom: 20px;
+      color: var(--nhs-blue);
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .delete-btn {
+      background-color: var(--nhs-blue);
+      border: none;
+      color: var(--nhs-white);
+      padding: 8px 14px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .delete-btn:hover {
+      background-color: var(--nhs-light-blue);
+    }
+
+    .disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Login View -->
+  <div class="container" id="loginView">
+    <h1>Login</h1>
+    <form id="loginForm">
+      <input type="text" id="loginUsername" placeholder="Username" required />
+      <input type="password" id="loginPassword" placeholder="Password" required />
+      <button type="submit">Login</button>
+    </form>
+  </div>
+
+  <!-- Main Application View -->
+  <div class="container" id="mainView" style="display: none;">
+    <h1>Patient Management System</h1>
+    <form id="addPatientForm">
+      <input type="text" id="name" placeholder="Patient Name" required />
+      <input type="number" id="age" placeholder="Age" required min="0" />
+      <textarea id="chiefComplaint" placeholder="Chief Complaint" required></textarea>
+      <button type="submit">Add Patient</button>
+    </form>
+
+    <h2>Patient List</h2>
+    <table id="patientTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Age</th>
+          <th>Chief Complaint</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- Patient Detail View -->
+  <div class="container" id="patientView" style="display: none;">
+    <span class="back-button" id="backBtn">← Back to list</span>
+    <h2 id="patientName"></h2>
+    <p><strong>Age:</strong> <span id="patientAge"></span></p>
+    <p><strong>Chief Complaint:</strong> <span id="patientComplaint"></span></p>
+
+    <h3>Add Entry / Note</h3>
+    <form id="addEntryForm">
+      <textarea id="entryText" placeholder="Write a note..." required></textarea>
+      <button type="submit">Add Entry</button>
+    </form>
+
+    <h3>Patient Notes</h3>
+    <ul class="notes" id="notesList"></ul>
+  </div>
+
+  <!-- Admin User Management -->
+  <div class="container" id="adminPanel" style="display: none;">
+    <h2>User Management (Admin Only)</h2>
+    <form id="addUserForm">
+      <input type="text" id="newUsername" placeholder="New Username" required />
+      <input type="password" id="newPassword" placeholder="New Password" required />
+      <button type="submit">Add User</button>
+    </form>
+
+    <table id="userTable">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Role</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    let users = JSON.parse(localStorage.getItem('users')) || [
+      { username: "CF", password: "HiLLonden1!!", isAdmin: true },
+      { username: "LB", password: "LB", isAdmin: true }
+    ];
+    let currentUser = null;
+    let patients = JSON.parse(localStorage.getItem('patients')) || [];
+    let currentPatientIndex = null;
+
+    const loginView = document.getElementById('loginView');
+    const mainView = document.getElementById('mainView');
+    const patientView = document.getElementById('patientView');
+    const adminPanel = document.getElementById('adminPanel');
+    const patientTableBody = document.querySelector('#patientTable tbody');
+    const addPatientForm = document.getElementById('addPatientForm');
+    const addEntryForm = document.getElementById('addEntryForm');
+    const entryText = document.getElementById('entryText');
+    const notesList = document.getElementById('notesList');
+    const backBtn = document.getElementById('backBtn');
+    const addUserForm = document.getElementById('addUserForm');
+    const userTableBody = document.querySelector('#userTable tbody');
+
+    // Login functionality
+    document.getElementById('loginForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = document.getElementById('loginUsername').value;
+      const password = document.getElementById('loginPassword').value;
+      const user = users.find(u => u.username === username && u.password === password);
+
+      if (user) {
+        currentUser = user;
+        loginView.style.display = 'none';
+        mainView.style.display = 'block';
+        if (user.isAdmin) {
+          adminPanel.style.display = 'block';
+        }
+        renderPatients();
+        renderUsers();  // Render users to show admin panel content
+      } else {
+        alert("Invalid username or password.");
       }
-      renderPatients();
-      renderUsers();  // Render users to show admin panel content
-    } else {
-      alert("Invalid username or password.");
-    }
-  });
-
-  // Patient management
-  addPatientForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const name = document.getElementById('name').value.trim();
-    const age = document.getElementById('age').value.trim();
-    const chiefComplaint = document.getElementById('chiefComplaint').value.trim();
-
-    if (name && age && chiefComplaint) {
-      const newPatient = { name, age, chiefComplaint, entries: [] };
-      patients.push(newPatient);
-      localStorage.setItem('patients', JSON.stringify(patients));
-      renderPatients();
-      addPatientForm.reset();
-    }
-  });
-
-  function renderPatients() {
-    patientTableBody.innerHTML = '';
-    patients.forEach((patient, index) => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td><a href="#" class="patient-name" data-index="${index}">${patient.name}</a></td>
-        <td>${patient.age}</td>
-        <td>${patient.chiefComplaint}</td>
-        <td>
-          <button class="delete-btn" onclick="deletePatient(${index})">Delete</button>
-        </td>
-      `;
-      patientTableBody.appendChild(row);
     });
-  }
 
-  // View a patient's details
-  patientTableBody.addEventListener('click', (e) => {
-    if (e.target.classList.contains('patient-name')) {
-      currentPatientIndex = e.target.getAttribute('data-index');
-      const patient = patients[currentPatientIndex];
-      document.getElementById('patientName').textContent = patient.name;
-      document.getElementById('patientAge').textContent = patient.age;
-      document.getElementById('patientComplaint').textContent = patient.chiefComplaint;
-      renderNotes(patient);
-      mainView.style.display = 'none';
-      patientView.style.display = 'block';
-    }
-  });
+    // Patient management
+    addPatientForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const age = document.getElementById('age').value.trim();
+      const chiefComplaint = document.getElementById('chiefComplaint').value.trim();
 
-  // Back to patients list
-  backBtn.addEventListener('click', () => {
-    patientView.style.display = 'none';
-    mainView.style.display = 'block';
-  });
-
-  // Add notes for patient
-  addEntryForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const note = entryText.value.trim();
-    if (note && currentPatientIndex !== null) {
-      const patient = patients[currentPatientIndex];
-      patient.entries.push(note);
-      localStorage.setItem('patients', JSON.stringify(patients));
-      renderNotes(patient);
-      entryText.value = '';
-    }
-  });
-
-  function renderNotes(patient) {
-    notesList.innerHTML = '';
-    patient.entries.forEach(entry => {
-      const li = document.createElement('li');
-      li.textContent = entry;
-      notesList.appendChild(li);
+      if (name && age && chiefComplaint) {
+        const newPatient = { name, age, chiefComplaint, entries: [] };
+        patients.push(newPatient);
+        localStorage.setItem('patients', JSON.stringify(patients));
+        renderPatients();
+        addPatientForm.reset();
+      }
     });
-  }
 
-  // User management
-  addUserForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const newUsername = document.getElementById('newUsername').value.trim();
-    const newPassword = document.getElementById('newPassword').value.trim();
-
-    if (newUsername && newPassword) {
-      const newUser = { username: newUsername, password: newPassword, isAdmin: false };
-      users.push(newUser);
-      localStorage.setItem('users', JSON.stringify(users));
-      renderUsers();
-      addUserForm.reset();
+    function renderPatients() {
+      patientTableBody.innerHTML = '';
+      patients.forEach((patient, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><a href="#" class="patient-name" data-index="${index}">${patient.name}</a></td>
+          <td>${patient.age}</td>
+          <td>${patient.chiefComplaint}</td>
+          <td>
+            <button class="delete-btn" onclick="deletePatient(${index})">Delete</button>
+          </td>
+        `;
+        patientTableBody.appendChild(row);
+      });
     }
-  });
 
-  // Render users in admin panel
-  function renderUsers() {
-    userTableBody.innerHTML = '';
-    users.forEach((user, index) => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${user.username}</td>
-        <td>${user.isAdmin ? 'Admin' : 'User'}</td>
-        <td>
-          <button class="delete-btn" onclick="deleteUser(${index})">Delete</button>
-        </td>
-      `;
-      userTableBody.appendChild(row);
+    // View a patient's details
+    patientTableBody.addEventListener('click', (e) => {
+      if (e.target.classList.contains('patient-name')) {
+        currentPatientIndex = e.target.getAttribute('data-index');
+        const patient = patients[currentPatientIndex];
+        document.getElementById('patientName').textContent = patient.name;
+        document.getElementById('patientAge').textContent = patient.age;
+        document.getElementById('patientComplaint').textContent = patient.chiefComplaint;
+        renderNotes(patient);
+        mainView.style.display = 'none';
+        patientView.style.display = 'block';
+      }
     });
-  }
 
-  // Delete patient
-  function deletePatient(index) {
-    if (confirm(`Are you sure you want to delete patient "${patients[index].name}"?`)) {
-      patients.splice(index, 1);
-      localStorage.setItem('patients', JSON.stringify(patients));
-      renderPatients();
+    // Back to patients list
+    backBtn.addEventListener('click', () => {
+      patientView.style.display = 'none';
+      mainView.style.display = 'block';
+    });
+
+    // Add notes for patient
+    addEntryForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const note = entryText.value.trim();
+      if (note && currentPatientIndex !== null) {
+        const patient = patients[currentPatientIndex];
+        patient.entries.push(note);
+        localStorage.setItem('patients', JSON.stringify(patients));
+        renderNotes(patient);
+        entryText.value = '';
+      }
+    });
+
+    function renderNotes(patient) {
+      notesList.innerHTML = '';
+      patient.entries.forEach(entry => {
+        const li = document.createElement('li');
+        li.textContent = entry;
+        notesList.appendChild(li);
+      });
     }
-  }
 
-  // Delete user
-  function deleteUser(index) {
-    if (users[index].username === "CF" || users[index].username === "LB") {
-      alert("You cannot delete the admin user.");
-    } else {
-      if (confirm(`Are you sure you want to delete user "${users[index].username}"?`)) {
-        users.splice(index, 1);
+    // User management
+    addUserForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const newUsername = document.getElementById('newUsername').value.trim();
+      const newPassword = document.getElementById('newPassword').value.trim();
+
+      if (newUsername && newPassword) {
+        const newUser = { username: newUsername, password: newPassword, isAdmin: false };
+        users.push(newUser);
         localStorage.setItem('users', JSON.stringify(users));
         renderUsers();
+        addUserForm.reset();
+      }
+    });
+
+    // Render users in admin panel
+    function renderUsers() {
+      userTableBody.innerHTML = '';
+      users.forEach((user, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${user.username}</td>
+          <td>${user.isAdmin ? 'Admin' : 'User'}</td>
+          <td>
+            <button class="delete-btn" onclick="deleteUser(${index})">Delete</button>
+          </td>
+        `;
+        userTableBody.appendChild(row);
+      });
+    }
+
+    // Delete patient
+    function deletePatient(index) {
+      if (confirm(`Are you sure you want to delete patient "${patients[index].name}"?`)) {
+        patients.splice(index, 1);
+        localStorage.setItem('patients', JSON.stringify(patients));
+        renderPatients();
       }
     }
-  }
 
-  // Initial render
-  renderPatients();
-  renderUsers();  // Ensure users are displayed when logged in
-</script>
+    // Delete user
+    function deleteUser(index) {
+      if (users[index].username === "CF" || users[index].username === "LB") {
+        alert("You cannot delete the admin user.");
+      } else {
+        if (confirm(`Are you sure you want to delete user "${users[index].username}"?`)) {
+          users.splice(index, 1);
+          localStorage.setItem('users', JSON.stringify(users));
+          renderUsers();
+        }
+      }
+    }
+
+    // Initial render
+    renderPatients();
+    renderUsers();  // Ensure users are displayed when logged in
+  </script>
+
+</body>
+</html>
