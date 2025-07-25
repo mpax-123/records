@@ -184,7 +184,7 @@
     <form id="addPatientForm">
       <input type="text" id="name" placeholder="Patient Name" required />
       <input type="number" id="age" placeholder="Age" required min="0" />
-      <textarea id="chiefComplaint" placeholder="Chief Complaint" required></textarea> <!-- Changed Medical Condition to Chief Complaint -->
+      <textarea id="chiefComplaint" placeholder="Chief Complaint" required></textarea>
       <button type="submit">Add Patient</button>
     </form>
 
@@ -194,7 +194,7 @@
         <tr>
           <th>Name</th>
           <th>Age</th>
-          <th>Chief Complaint</th> <!-- Changed column title -->
+          <th>Chief Complaint</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -242,7 +242,7 @@
 
   <script>
     let users = JSON.parse(localStorage.getItem('users')) || [
-      { username: "charlotte fletcher", password: "HiLLonden1!!", isAdmin: true }
+      { username: "CF", password: "HiLLonden1!!", isAdmin: true }
     ];
     let currentUser = null;
     let patients = JSON.parse(localStorage.getItem('patients')) || [];
@@ -259,6 +259,7 @@
     const notesList = document.getElementById('notesList');
     const backBtn = document.getElementById('backBtn');
     const addUserForm = document.getElementById('addUserForm');
+    const userTableBody = document.querySelector('#userTable tbody');
 
     document.getElementById('loginForm').addEventListener('submit', (e) => {
       e.preventDefault();
@@ -282,12 +283,14 @@
     addPatientForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const name = document.getElementById('name').value.trim();
-      const age = document.getElementById('age').value;
+      const age = document.getElementById('age').value.trim();
       const chiefComplaint = document.getElementById('chiefComplaint').value.trim();
 
       if (name && age && chiefComplaint) {
-        patients.push({ name, age, chiefComplaint, notes: [] });
-        saveAndRender();
+        const newPatient = { name, age, chiefComplaint, entries: [] };
+        patients.push(newPatient);
+        localStorage.setItem('patients', JSON.stringify(patients));
+        renderPatients();
         addPatientForm.reset();
       }
     });
@@ -299,103 +302,91 @@
         row.innerHTML = `
           <td><a href="#" class="patient-name" data-index="${index}">${patient.name}</a></td>
           <td>${patient.age}</td>
-          <td>${patient.chiefComplaint}</td> <!-- Changed column data -->
+          <td>${patient.chiefComplaint}</td>
           <td>
-            <button class="delete-btn" data-index="${index}">Delete</button>
-            <button class="export-btn" data-index="${index}">Save & Export</button>
+            <button class="delete-btn" onclick="deletePatient(${index})">Delete</button>
           </td>
         `;
         patientTableBody.appendChild(row);
       });
-      localStorage.setItem('patients', JSON.stringify(patients));
     }
 
-    patientTableBody.addEventListener('click', e => {
-      const target = e.target;
-      if (target.classList.contains('patient-name')) {
-        e.preventDefault();
-        const index = target.getAttribute('data-index');
-        viewPatient(Number(index));
-      }
-      if (target.classList.contains('delete-btn')) {
-        const index = target.getAttribute('data-index');
-        deletePatient(Number(index));
-      }
-      if (target.classList.contains('export-btn')) {
-        const index = target.getAttribute('data-index');
-        saveAndExportPatient(Number(index));
+    function deletePatient(index) {
+      patients.splice(index, 1);
+      localStorage.setItem('patients', JSON.stringify(patients));
+      renderPatients();
+    }
+
+    patientTableBody.addEventListener('click', (e) => {
+      if (e.target.classList.contains('patient-name')) {
+        currentPatientIndex = e.target.getAttribute('data-index');
+        const patient = patients[currentPatientIndex];
+        document.getElementById('patientName').textContent = patient.name;
+        document.getElementById('patientAge').textContent = patient.age;
+        document.getElementById('patientComplaint').textContent = patient.chiefComplaint;
+        renderNotes(patient);
+        mainView.style.display = 'none';
+        patientView.style.display = 'block';
       }
     });
-
-    function viewPatient(index) {
-      currentPatientIndex = index;
-      const patient = patients[index];
-      document.getElementById('patientName').textContent = patient.name;
-      document.getElementById('patientAge').textContent = patient.age;
-      document.getElementById('patientComplaint').textContent = patient.chiefComplaint;
-      renderNotes();
-      mainView.style.display = 'none';
-      patientView.style.display = 'block';
-    }
 
     backBtn.addEventListener('click', () => {
-      mainView.style.display = 'block';
       patientView.style.display = 'none';
-      currentPatientIndex = null;
+      mainView.style.display = 'block';
     });
 
-    function renderNotes() {
+    addEntryForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const note = entryText.value.trim();
+      if (note && currentPatientIndex !== null) {
+        const patient = patients[currentPatientIndex];
+        patient.entries.push(note);
+        localStorage.setItem('patients', JSON.stringify(patients));
+        renderNotes(patient);
+        entryText.value = '';
+      }
+    });
+
+    function renderNotes(patient) {
       notesList.innerHTML = '';
-      if (currentPatientIndex === null) return;
-      const notes = patients[currentPatientIndex].notes;
-      notes.forEach(note => {
+      patient.entries.forEach(entry => {
         const li = document.createElement('li');
-        li.textContent = note;
+        li.textContent = entry;
         notesList.appendChild(li);
       });
     }
 
-    addEntryForm.addEventListener('submit', e => {
+    addUserForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      const note = entryText.value.trim();
-      if (note && currentPatientIndex !== null) {
-        patients[currentPatientIndex].notes.push(note);
-        saveAndRender();
-        renderNotes();
-        addEntryForm.reset();
+      const newUsername = document.getElementById('newUsername').value.trim();
+      const newPassword = document.getElementById('newPassword').value.trim();
+      
+      if (newUsername && newPassword) {
+        const newUser = { username: newUsername, password: newPassword, isAdmin: false };
+        users.push(newUser);
+        localStorage.setItem('users', JSON.stringify(users));
+        renderUsers();
+        addUserForm.reset();
       }
     });
 
-    function deletePatient(index) {
-      if (confirm(`Delete patient "${patients[index].name}"?`)) {
-        if (currentPatientIndex === index) {
-          patientView.style.display = 'none';
-          mainView.style.display = 'block';
-        }
-        patients.splice(index, 1);
-        saveAndRender();
-      }
+    function renderUsers() {
+      userTableBody.innerHTML = '';
+      users.forEach(user => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${user.username}</td>
+          <td>${user.isAdmin ? 'Admin' : 'User'}</td>
+          <td>
+            <button class="delete-btn">Delete</button>
+          </td>
+        `;
+        userTableBody.appendChild(row);
+      });
     }
 
-    function saveAndExportPatient(index) {
-      const patient = patients[index];
-      const patientData = {
-        content: `New Patient Record:\n**Name**: ${patient.name}\n**Age**: ${patient.age}\n**Chief Complaint**: ${patient.chiefComplaint}\n\n**Notes**:\n${patient.notes.length ? patient.notes.join('\n') : 'No notes available.'}`
-      };
-      fetch('https://discord.com/api/webhooks/1396950794959589426/gLcOXOw22RnywXltDJCLCwtFoKYdlNRqdd2MdemcFHo-PHYdlssLhg7bulA9aTAUZROd', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(patientData)
-      })
-        .then(response => response.json())
-        .then(() => alert('Patient data exported to Discord!'))
-        .catch(error => console.error('Error exporting data:', error));
-    }
-
-    function saveAndRender() {
-      localStorage.setItem('patients', JSON.stringify(patients));
-      renderPatients();
-    }
+    renderUsers();
   </script>
+
 </body>
 </html>
