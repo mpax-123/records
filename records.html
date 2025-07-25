@@ -4,13 +4,13 @@
   <meta charset="UTF-8" />
   <title>Patient Management System</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"> <!-- Adding modern fonts -->
   <style>
-    /* NHS Colors */
+    /* NHS Colors (Revised, without Green) */
     :root {
       --nhs-blue: #005eb8;
       --nhs-light-blue: #00a1e5;
       --nhs-dark-blue: #003b5c;
-      --nhs-green: #78be20;
       --nhs-light-grey: #f0f0f0;
       --nhs-dark-grey: #555555;
       --nhs-white: #ffffff;
@@ -18,7 +18,7 @@
 
     body {
       margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: 'Roboto', sans-serif; /* Modern font */
       background-color: #f4f6f8;
       padding: 20px;
     }
@@ -34,6 +34,7 @@
 
     h1, h2, h3 {
       color: var(--nhs-dark-blue);
+      font-weight: 500;
     }
 
     h1 {
@@ -60,6 +61,7 @@
       border: 1px solid #ccc;
       border-radius: 5px;
       background-color: var(--nhs-light-grey);
+      font-family: 'Roboto', sans-serif;
     }
 
     button {
@@ -70,6 +72,7 @@
       border-radius: 5px;
       cursor: pointer;
       font-size: 16px;
+      font-weight: 500;
     }
 
     button:hover {
@@ -124,7 +127,7 @@
     }
 
     .delete-btn {
-      background-color: var(--nhs-green);
+      background-color: var(--nhs-blue);
       border: none;
       color: var(--nhs-white);
       padding: 8px 14px;
@@ -134,7 +137,7 @@
     }
 
     .delete-btn:hover {
-      background-color: var(--nhs-dark-blue);
+      background-color: var(--nhs-light-blue);
     }
 
     .export-btn {
@@ -181,7 +184,7 @@
     <form id="addPatientForm">
       <input type="text" id="name" placeholder="Patient Name" required />
       <input type="number" id="age" placeholder="Age" required min="0" />
-      <textarea id="condition" placeholder="Medical Condition" required></textarea>
+      <textarea id="chiefComplaint" placeholder="Chief Complaint" required></textarea> <!-- Changed Medical Condition to Chief Complaint -->
       <button type="submit">Add Patient</button>
     </form>
 
@@ -191,7 +194,7 @@
         <tr>
           <th>Name</th>
           <th>Age</th>
-          <th>Condition</th>
+          <th>Chief Complaint</th> <!-- Changed column title -->
           <th>Actions</th>
         </tr>
       </thead>
@@ -204,7 +207,7 @@
     <span class="back-button" id="backBtn">← Back to list</span>
     <h2 id="patientName"></h2>
     <p><strong>Age:</strong> <span id="patientAge"></span></p>
-    <p><strong>Condition:</strong> <span id="patientCondition"></span></p>
+    <p><strong>Chief Complaint:</strong> <span id="patientComplaint"></span></p>
 
     <h3>Add Entry / Note</h3>
     <form id="addEntryForm">
@@ -259,7 +262,7 @@
 
     document.getElementById('loginForm').addEventListener('submit', (e) => {
       e.preventDefault();
-      const username = document.getElementById('loginUsername').value.trim();
+      const username = document.getElementById('loginUsername').value;
       const password = document.getElementById('loginPassword').value;
       const user = users.find(u => u.username === username && u.password === password);
 
@@ -269,7 +272,6 @@
         mainView.style.display = 'block';
         if (user.isAdmin) {
           adminPanel.style.display = 'block';
-          renderUsers();
         }
         renderPatients();
       } else {
@@ -277,70 +279,16 @@
       }
     });
 
-    addUserForm.addEventListener('submit', e => {
+    addPatientForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      const username = document.getElementById('newUsername').value.trim();
-      const password = document.getElementById('newPassword').value;
+      const name = document.getElementById('name').value.trim();
+      const age = document.getElementById('age').value;
+      const chiefComplaint = document.getElementById('chiefComplaint').value.trim();
 
-      if (users.some(u => u.username === username)) {
-        alert("User already exists.");
-        return;
-      }
-
-      users.push({ username, password, isAdmin: false });
-      localStorage.setItem('users', JSON.stringify(users));
-      renderUsers();
-      addUserForm.reset();
-    });
-
-    function renderUsers() {
-      const userTableBody = document.querySelector('#userTable tbody');
-      userTableBody.innerHTML = '';
-
-      users.forEach((user, index) => {
-        const tr = document.createElement('tr');
-        const disableEdit = user.isAdmin ? 'disabled' : '';
-        tr.innerHTML = `
-          <td><input type="text" value="${user.username}" data-index="${index}" class="edit-user" ${disableEdit} style="width:100%"></td>
-          <td>${user.isAdmin ? 'Admin' : 'User'}</td>
-          <td>
-            <button class="save-user-btn" data-index="${index}" ${disableEdit}>Save</button>
-            <button class="delete-user-btn" data-index="${index}" ${disableEdit}>Delete</button>
-          </td>
-        `;
-        userTableBody.appendChild(tr);
-      });
-    }
-
-    document.querySelector('#userTable').addEventListener('click', (e) => {
-      const target = e.target;
-      const index = Number(target.getAttribute('data-index'));
-
-      if (target.classList.contains('save-user-btn')) {
-        const newName = document.querySelector(`.edit-user[data-index="${index}"]`).value.trim();
-        if (!newName) {
-          alert("Username cannot be empty.");
-          return;
-        }
-        if (users.some((u, i) => u.username === newName && i !== index)) {
-          alert("Username already taken.");
-          return;
-        }
-        users[index].username = newName;
-        localStorage.setItem('users', JSON.stringify(users));
-        renderUsers();
-      }
-
-      if (target.classList.contains('delete-user-btn')) {
-        if (users[index].isAdmin) {
-          alert("Cannot delete admin.");
-          return;
-        }
-        if (confirm(`Delete user "${users[index].username}"?`)) {
-          users.splice(index, 1);
-          localStorage.setItem('users', JSON.stringify(users));
-          renderUsers();
-        }
+      if (name && age && chiefComplaint) {
+        patients.push({ name, age, chiefComplaint, notes: [] });
+        saveAndRender();
+        addPatientForm.reset();
       }
     });
 
@@ -351,7 +299,7 @@
         row.innerHTML = `
           <td><a href="#" class="patient-name" data-index="${index}">${patient.name}</a></td>
           <td>${patient.age}</td>
-          <td>${patient.condition}</td>
+          <td>${patient.chiefComplaint}</td> <!-- Changed column data -->
           <td>
             <button class="delete-btn" data-index="${index}">Delete</button>
             <button class="export-btn" data-index="${index}">Save & Export</button>
@@ -361,19 +309,6 @@
       });
       localStorage.setItem('patients', JSON.stringify(patients));
     }
-
-    addPatientForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const name = document.getElementById('name').value.trim();
-      const age = document.getElementById('age').value;
-      const condition = document.getElementById('condition').value.trim();
-
-      if (name && age && condition) {
-        patients.push({ name, age, condition, notes: [] });
-        saveAndRender();
-        addPatientForm.reset();
-      }
-    });
 
     patientTableBody.addEventListener('click', e => {
       const target = e.target;
@@ -397,7 +332,7 @@
       const patient = patients[index];
       document.getElementById('patientName').textContent = patient.name;
       document.getElementById('patientAge').textContent = patient.age;
-      document.getElementById('patientCondition').textContent = patient.condition;
+      document.getElementById('patientComplaint').textContent = patient.chiefComplaint;
       renderNotes();
       mainView.style.display = 'none';
       patientView.style.display = 'block';
@@ -445,7 +380,7 @@
     function saveAndExportPatient(index) {
       const patient = patients[index];
       const patientData = {
-        content: `New Patient Record:\n**Name**: ${patient.name}\n**Age**: ${patient.age}\n**Condition**: ${patient.condition}\n\n**Notes**:\n${patient.notes.length ? patient.notes.join('\n') : 'No notes available.'}`
+        content: `New Patient Record:\n**Name**: ${patient.name}\n**Age**: ${patient.age}\n**Chief Complaint**: ${patient.chiefComplaint}\n\n**Notes**:\n${patient.notes.length ? patient.notes.join('\n') : 'No notes available.'}`
       };
       fetch('https://discord.com/api/webhooks/1396950794959589426/gLcOXOw22RnywXltDJCLCwtFoKYdlNRqdd2MdemcFHo-PHYdlssLhg7bulA9aTAUZROd', {
         method: 'POST',
