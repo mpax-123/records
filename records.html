@@ -284,13 +284,6 @@
 
   <script>
     let users = JSON.parse(localStorage.getItem('users')) || [];
-    if (!users.find(u => u.username === 'CF')) {
-      users.push({ username: 'CF', password: 'CF1!', role: 'admin' });
-    }
-    if (!users.find(u => u.username === 'LB')) {
-      users.push({ username: 'LB', password: 'LB1!', role: 'admin' });
-    }
-
     let patients = JSON.parse(localStorage.getItem('patients')) || [];
     let currentUser = JSON.parse(localStorage.getItem('currentUser'));
 
