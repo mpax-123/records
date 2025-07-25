@@ -197,9 +197,10 @@
   </div>
 
   <script>
+    // Initialize users in localStorage if not already set
     let users = JSON.parse(localStorage.getItem('users')) || [
       { username: "CF", password: "HiLLonden1!!", isAdmin: true },
-      { username: "LB", password: "LB", isAdmin: true }
+      { username: "LB", password: "LB", isAdmin: true }  // Ensure LB is in the initial setup
     ];
     let currentUser = null;
     let patients = JSON.parse(localStorage.getItem('patients')) || [];
@@ -217,6 +218,9 @@
     const backBtn = document.getElementById('backBtn');
     const addUserForm = document.getElementById('addUserForm');
     const userTableBody = document.querySelector('#userTable tbody');
+
+    // Ensure that users are always saved in localStorage
+    localStorage.setItem('users', JSON.stringify(users));
 
     // Login functionality
     document.getElementById('loginForm').addEventListener('submit', (e) => {
@@ -240,136 +244,4 @@
     });
 
     // Patient management
-    addPatientForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const name = document.getElementById('name').value.trim();
-      const age = document.getElementById('age').value.trim();
-      const chiefComplaint = document.getElementById('chiefComplaint').value.trim();
-
-      if (name && age && chiefComplaint) {
-        const newPatient = { name, age, chiefComplaint, entries: [] };
-        patients.push(newPatient);
-        localStorage.setItem('patients', JSON.stringify(patients));
-        renderPatients();
-        addPatientForm.reset();
-      }
-    });
-
-    function renderPatients() {
-      patientTableBody.innerHTML = '';
-      patients.forEach((patient, index) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td><a href="#" class="patient-name" data-index="${index}">${patient.name}</a></td>
-          <td>${patient.age}</td>
-          <td>${patient.chiefComplaint}</td>
-          <td>
-            <button class="delete-btn" onclick="deletePatient(${index})">Delete</button>
-          </td>
-        `;
-        patientTableBody.appendChild(row);
-      });
-    }
-
-    // View a patient's details
-    patientTableBody.addEventListener('click', (e) => {
-      if (e.target.classList.contains('patient-name')) {
-        currentPatientIndex = e.target.getAttribute('data-index');
-        const patient = patients[currentPatientIndex];
-        document.getElementById('patientName').textContent = patient.name;
-        document.getElementById('patientAge').textContent = patient.age;
-        document.getElementById('patientComplaint').textContent = patient.chiefComplaint;
-        renderNotes(patient);
-        mainView.style.display = 'none';
-        patientView.style.display = 'block';
-      }
-    });
-
-    // Back to patients list
-    backBtn.addEventListener('click', () => {
-      patientView.style.display = 'none';
-      mainView.style.display = 'block';
-    });
-
-    // Add notes for patient
-    addEntryForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const note = entryText.value.trim();
-      if (note && currentPatientIndex !== null) {
-        const patient = patients[currentPatientIndex];
-        patient.entries.push(note);
-        localStorage.setItem('patients', JSON.stringify(patients));
-        renderNotes(patient);
-        entryText.value = '';
-      }
-    });
-
-    function renderNotes(patient) {
-      notesList.innerHTML = '';
-      patient.entries.forEach(entry => {
-        const li = document.createElement('li');
-        li.textContent = entry;
-        notesList.appendChild(li);
-      });
-    }
-
-    // User management
-    addUserForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const newUsername = document.getElementById('newUsername').value.trim();
-      const newPassword = document.getElementById('newPassword').value.trim();
-
-      if (newUsername && newPassword) {
-        const newUser = { username: newUsername, password: newPassword, isAdmin: false };
-        users.push(newUser);
-        localStorage.setItem('users', JSON.stringify(users));
-        renderUsers();
-        addUserForm.reset();
-      }
-    });
-
-    // Render users in admin panel
-    function renderUsers() {
-      userTableBody.innerHTML = '';
-      users.forEach((user, index) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${user.username}</td>
-          <td>${user.isAdmin ? 'Admin' : 'User'}</td>
-          <td>
-            <button class="delete-btn" onclick="deleteUser(${index})">Delete</button>
-          </td>
-        `;
-        userTableBody.appendChild(row);
-      });
-    }
-
-    // Delete patient
-    function deletePatient(index) {
-      if (confirm(`Are you sure you want to delete patient "${patients[index].name}"?`)) {
-        patients.splice(index, 1);
-        localStorage.setItem('patients', JSON.stringify(patients));
-        renderPatients();
-      }
-    }
-
-    // Delete user
-    function deleteUser(index) {
-      if (users[index].username === "CF" || users[index].username === "LB") {
-        alert("You cannot delete the admin user.");
-      } else {
-        if (confirm(`Are you sure you want to delete user "${users[index].username}"?`)) {
-          users.splice(index, 1);
-          localStorage.setItem('users', JSON.stringify(users));
-          renderUsers();
-        }
-      }
-    }
-
-    // Initial render
-    renderPatients();
-    renderUsers();  // Ensure users are displayed when logged in
-  </script>
-
-</body>
-</html>
+    addPatientForm.addEventListener('submit',
